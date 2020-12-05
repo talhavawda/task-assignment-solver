@@ -1,0 +1,7 @@
+https://github.com/aimacode/aima-java/blob/AIMA3e/aima-core/src/main/java/aima/core/search/local/GeneticAlgorithm.java
+
+Pseudocode:
+https://github.com/aimacode/aima-pseudocode/blob/master/md/Genetic-Algorithm.md
+	RANDOM-SELECTION() does Roulette Selection
+
+This Java class follows 3e, whist the Python search.py Generic Algorithm follows 4e
