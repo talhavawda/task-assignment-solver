@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ea821531-b228-437b-b9f8-74ba623ce800" name="Default Changelist" comment="" />
+    <list default="true" id="ea821531-b228-437b-b9f8-74ba623ce800" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TAP-GA-Java/AIMA Java GenericAlgorithm link.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../TAP-GA-Java/AIMA Java GenericAlgorithm link.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TaskAssignmentProblem.py" beforeDir="false" afterPath="$PROJECT_DIR$/TaskAssignmentProblem.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,7 +19,11 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
   <component name="ProjectId" id="1lFg3Yz0eHSFEAgChbDThs0PkY5" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -22,6 +31,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="settings.editor.selected.configurable" value="Errors" />
   </component>
@@ -35,7 +45,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1607198054854</updated>
-      <workItem from="1607198057962" duration="260000" />
+      <workItem from="1607198057962" duration="1758000" />
     </task>
     <servers />
   </component>
@@ -43,6 +53,10 @@
     <option name="version" value="1" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="552" y="178" key="#Python" timestamp="1607199681564">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="178" key="#Python/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607199681564" />
     <state x="656" y="343" key="com.intellij.ide.util.TipDialog" timestamp="1607198099705">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
