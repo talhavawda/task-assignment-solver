@@ -141,17 +141,140 @@ def mutate(x, gene_pool, pmut):
 # ==============================================================================
 # ==============================================================================
 
-class TaskAssignment:
-	#Take in
-	def __init__(self, tablePT):
-		#
+
+#Todo
+def solveTaskAssignment(table: list, persons:int = None, tasks: int = None):
+
+	if not persons: # i.e. if persons == None (the default) - if no persons parameter was passed in
+		persons = len(table)
+
+	if not tasks:
+		tasks = len(table[0])
+
+	optimalAssignment = []
+
+	totalScoreOptimal = fitness_funct(optimalAssignment)
+
+	return  optimalAssignment, totalScoreOptimal
 
 
-def solveTaskAssignment():
-	print("\nSolving the Task Assignment Problem: ")
+# ==============================================================================
+
+
+def getPersonScores(tasks: int, scoresStr: str):
+	scores: int = []  # 1D list
+	for i in range(tasks):  # i traverses [0, ..., tasks-1]
+		scoresStr = scoresStr.strip()  # Remove leading and trailing whitespaces so that the beginning of the string is the score for this task
+		whitespaceIndex = scoresStr.find(" ")
+
+		"""
+			If we are at the last task (i == tasks-1), then  there wont be a whitespace after the 
+			score for this task in the scoresStr, so dont do any slicing - the score (as a string) for this task
+			is the remaining scoresStr
+
+			Else (if not the last task, thus there is a whitespace between the score for this task and the next task)
+			then to get the score (as a string) for this task, slice from the beginning of the scoresStr till the character
+			before the whitespace
+		"""
+		if whitespaceIndex == -1:
+			scoreStr = scoresStr
+		else:
+			scoreStr = scoresStr[:whitespaceIndex]
+
+		score = int(scoreStr)
+		scores.append(score)
+		scoresStr = scoresStr[whitespaceIndex + 1:]  # Remove the score for this task from scoresStr
+
+	return scores
+
+
+def readInputFile(fileName: str):
+	inputFile = open(fileName)
+
+	persons = int(inputFile.readline())  # number of persons
+	tasks = int(inputFile.readline())  # number of tasks
+
+	# table = inputFile.readlines()
+	table = []  # This is going to be a 2D Array/list
+
+	for person in range(persons):
+		while True:  # Get the next non-empty/blank line (to skip over any blank lines between the number of tasks and the table itself)
+			personScoresString = inputFile.readline()
+			if personScoresString != "\n":
+				break
+		# print(personScoresString)
+		personScores = getPersonScores(tasks, personScoresString)
+		table.append(personScores)
+	# print(personScores)
+
+	inputFile.close()
+
+	return  table, persons, tasks
+
+
+
+
+def printPTTable(table: list, persons:int = None, tasks: int = None):
+
+	if not persons: # i.e. if persons == None (the default) - if no persons parameter was passed in
+		persons = len(table)
+
+	if not tasks:
+		tasks = len(table[0])
+
+
+	#Column Headings (Tasks)
+	print("Tasks ->", end="\t\t")
+	headerStr = "=============="
+	for task in range(tasks):
+		print(task+1, end="\t")
+		headerStr += "===="
+	print("\nPersons:")
+	print(headerStr)
+
+
+	#for person in table: # for each row
+	#	print(end="\t\t\t\t")
+	#	for task in person: # for each column in a row
+	#		print(task, end="\t")
+
+	for person in range(persons): # for each row
+		print("\t", person+1, end="\t|\t\t")
+		for task in table[person]: # for each column in a row
+			print(task, end="\t")
+		print()
+
+
+
 
 def main():
-	#a
+	print("\n\nSolving the Task Assignment Problem using Genetic Algorithms")
+	print("=============================================================\n\n")
+
+	fileName = "input.txt"  # Set the default filename to 'input.txt'
+	userFile = input("Please enter the file name of the Person-Task performance values: ")
+	print("If no absolute path to the file was specified, the file is assumed to be in the current working directory")
+
+	userFile = userFile.strip();
+
+	if userFile:  # if the user-entered file name is NOT the empty string
+		fileName = userFile
+
+	table, persons, tasks = readInputFile(fileName)
+
+	optimalAssignment, totalScoreOptimal = solveTaskAssignment(table, persons, tasks)
+
+
+	print()
+	print("Persons:\t", persons)
+	print("Tasks:\t\t", tasks)
+	print()
+	print("Person-Task Performance Table:\n")
+	printPTTable(table, persons, tasks)
+
+	print("\n")
+	print("The optimal Task Assignment is: ")
+	print("The total score for this assignment is: ")
 
 
 main()
