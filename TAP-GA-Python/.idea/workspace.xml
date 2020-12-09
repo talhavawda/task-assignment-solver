@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ea821531-b228-437b-b9f8-74ba623ce800" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../TAP-GA-Java/AIMA Java GenericAlgorithm link.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../TAP-GA-Java/AIMA Java GenericAlgorithm link.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MorePersons.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MoreTasks.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TaskAssignmentProblem.py" beforeDir="false" afterPath="$PROJECT_DIR$/TaskAssignmentProblem.py" afterDir="false" />
     </list>
@@ -35,6 +35,35 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="settings.editor.selected.configurable" value="Errors" />
   </component>
+  <component name="RunManager">
+    <configuration name="TaskAssignmentProblem" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="TAP-GA-Python" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TaskAssignmentProblem.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.TaskAssignmentProblem" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -45,7 +74,10 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1607198054854</updated>
-      <workItem from="1607198057962" duration="1758000" />
+      <workItem from="1607198057962" duration="13093000" />
+      <workItem from="1607262152320" duration="151000" />
+      <workItem from="1607423336714" duration="61000" />
+      <workItem from="1607513364042" duration="8283000" />
     </task>
     <servers />
   </component>
@@ -53,17 +85,40 @@
     <option name="version" value="1" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="552" y="178" key="#Python" timestamp="1607199681564">
+    <state x="552" y="178" key="#Python" timestamp="1607537474767">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="552" y="178" key="#Python/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607199681564" />
-    <state x="656" y="343" key="com.intellij.ide.util.TipDialog" timestamp="1607198099705">
+    <state x="552" y="178" key="#Python/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607537474767" />
+    <state x="414" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1607248188747">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="656" y="343" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607198099705" />
+    <state x="414" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607248188747" />
+    <state width="1877" height="314" key="GridCell.Tab.0.bottom" timestamp="1607546380974">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="314" key="GridCell.Tab.0.bottom/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607546380974" />
+    <state width="1877" height="314" key="GridCell.Tab.0.center" timestamp="1607546380974">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="314" key="GridCell.Tab.0.center/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607546380974" />
+    <state width="1877" height="314" key="GridCell.Tab.0.left" timestamp="1607546380974">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="314" key="GridCell.Tab.0.left/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607546380974" />
+    <state width="1877" height="314" key="GridCell.Tab.0.right" timestamp="1607546380974">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="314" key="GridCell.Tab.0.right/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607546380974" />
+    <state x="656" y="343" key="com.intellij.ide.util.TipDialog" timestamp="1607531749137">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="656" y="343" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607531749137" />
     <state x="591" y="65" width="737" height="909" key="find.popup" timestamp="1607198109123">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="591" y="65" width="737" height="909" key="find.popup/0.0.1920.1040/-1280.40.1280.984@0.0.1920.1040" timestamp="1607198109123" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/TAP_GA_Python$TaskAssignmentProblem.coverage" NAME="TaskAssignmentProblem Coverage Results" MODIFIED="1607546373784" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
