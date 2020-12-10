@@ -18,7 +18,7 @@
 				Notes:
 					1.	Due to the assignment's requirement of this single script being able to be run from the command line,
 						I have copied the relevant code from the search.py file (and the utils.py from the AIMA GitHub repo)
-						into this file instead of importing search and utils
+						into this file instead of importing the search and utils files
 						-	As when I imported them and this script is executed from the command line without
 							the other 2 files present in the same directory, it will not execute
 						-	The Assignment Specification has given permission for the search.py file (which also imports utils.py)
@@ -27,13 +27,15 @@
 								search.py or utils.py
 
 """
+
+
 import random
 import bisect
+
 
 """
 	Helper Functions (from utils.py)
 """
-
 
 def weighted_sampler(seq, weights):
 	"""Return a random-sample function that picks from seq weighted by weights."""
@@ -45,8 +47,10 @@ def weighted_sampler(seq, weights):
 
 """
 	Genetic Search Algorithm (taken from search.py)
+	
+	All comments are mine
+	I have modified some of the functions so that the Constraints of the Task Assignment Problem is met
 """
-
 
 def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
 	"""Call genetic_algorithm on the appropriate parts of a problem.
@@ -57,9 +61,11 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
 	# TODO: Use this function to make Problems work with genetic_algorithm.
 
 	s = problem.initial_state
-	states = [problem.result(s, a) for a in problem.actions(s)]
+	states = [problem.result(s, a) for a in problem.actions(s)]	
 	random.shuffle(states)
 	return genetic_algorithm(states[:n], problem.value, ngen, pmut)
+
+
 
 # ngen - number of generations of the population
 def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
@@ -86,16 +92,56 @@ def fitness_threshold(fitness_fn, f_thres, population):
 	return None
 
 
-def init_population(pop_number, gene_pool, state_length):
-	"""Initializes population for genetic algorithm
-	pop_number  :  Number of individuals in population
-	gene_pool   :  List of possible values for individuals
-	state_length:  The length of each individual"""
-	g = len(gene_pool)
-	population = []
-	for i in range(pop_number):
-		new_individual = [gene_pool[random.randrange(0, g)] for j in range(state_length)]
-		population.append(new_individual)
+def init_population(popSize, genePool, stateLength):
+	"""
+		Initialises the population for the Genetic Algorithm
+
+		:param popSize: 		The number of individuals in the population
+		:param genePool: 		The list of all possible values (all possible genes) that can be used to make an individual chromosome
+		:param stateLength:		The length/size of each individual chromosome (i.e. the number of Tasks for the Task Assignment Problem)
+		:return: 				The initial population for this Problem to be used by the Genetic Algorithm
+	"""
+
+	g = len(genePool)
+
+	population = [] # list of individual chromosomes
+
+	"""
+		Create the initial population - popSize number of chromosomes
+		The chromosomes are randomly generated
+			i.e. each chromosome (Person-Task Assignment) in the initial population is a random assignment of Persons to Tasks
+			
+		Each chromosome that is randomly generated meets the constraints of the problem
+			- A Person can be assigned to only 1 Task
+				i.e. if they are already assigned to a Task, then they cannot also be assigned to another Task, 
+				even if they are the best Person to perform that Task
+		
+		(See solveTaskAssignment() documentation for a description of what a chromosome is)
+		
+	"""
+	for i in range(popSize): # Create chromosome i
+
+		#new_individual = [genePool[random.randrange(0, g)] for j in range(stateLength)]
+
+		newIndividual = [] # Chromosome i
+
+		"""
+			A List of boolean values that says whether Person i has already been assigned to a Task or not for this chromosome
+			Intialise to False, as initially no Person is assigned to a Task yet
+		"""
+		isAlreadyAssigned = [False for person in range(g)]
+
+		for j in range(stateLength): #Assign a random person (that has not been previously assigned) to perform Task j
+
+			while True:
+				randomPerson = genePool[random.randrange(0, g)] # get the index of a random Person
+				if isAlreadyAssigned[randomPerson] == False: # if this random person has not already been assigned to a Task
+					personAssigned = randomPerson # assign this Person to perform Task j
+					newIndividual.append(personAssigned)
+					isAlreadyAssigned[randomPerson] = True
+					break
+
+		population.append(newIndividual)
 
 	return population
 
@@ -150,17 +196,64 @@ def mutate(x, gene_pool, pmut):
 
 # Todo
 def solveTaskAssignment(table: list, persons: int = None, tasks: int = None):
+	"""
+		Solve the Task Assignment Problem using Genetic Algorithms
+
+
+		A State in the State Space for this Problem is a list of integer values (where the value at index i in the list
+		is the (index of the) Person (in the Person-Task table) who is assigned to perform Task i)
+			- i.e. it represents an (specific) assignment of people to tasks
+
+		A chromsome in a Genetic Algorithm represents is State from the State Space, thus a chromosome for
+			this Task Assignment Problem is as specified above (a list of Person-to-Task assignments)
+		Thus a gene is an integer value that represents the index of a Person in the Person-Task performance-values table
+		The Gene Pool is the list of all possible values (all possible genes) that can be used to make an individual chromosome
+			-> Thus the Gene Pool indexes of all the People (0, 1, ..., persons-1)
+			-> Thus Gene Pool range: [0, persons-1]
+
+		Constraints:
+			A Person can only be assigned to 1 Task - i.e. if they are already assigned to a Task, then they cannot
+				also be assigned to another Task, even if they are the best Person to perform that Task
+
+
+		:param table: 	the 2D list/array of Person-Task performance-values (scores)
+		:param persons: the number of Persons
+		:param tasks: 	the number of Tasks
+		:return: 		the optimal Task Assignment chromosome and its associated score/fitness (as a tuple, in that order)
+	"""
+
+
 	if not persons:  # i.e. if persons == None (the default) - if no persons parameter was passed in
 		persons = len(table)
 
 	if not tasks:  # i.e. if tasks == None (the default) - if no tasks parameter was passed in
 		tasks = len(table[0])
 
+	"""
+		The Gene Pool is the indexes of all the People:
+			Their indexes are 0, 1, ..., persons-1
+			
+			Pseudocode:
+				genePool = []
+				for personIndex in [0, 1, ..., persons-1]:
+					genePool.append(personIndex)
+	"""
+	genePool = [personIndex for personIndex in range(persons)]
+
+	populationSize = 10
+
+
+	initialPopulation = init_population(populationSize, genePool, tasks)
+
+	for chromosome in initialPopulation:
+		print(chromosome)
+
 	optimalAssignment = []
 
 	#totalScoreOptimal = fitness_funct(optimalAssignment)
 
 	#return optimalAssignment, totalScoreOptimal
+
 
 
 # ==============================================================================
@@ -228,7 +321,7 @@ def readInputFile(fileName: str):
 		The lecturer mentioned in the class meeting that we must assume that the number of persons is the same as the number of tasks
 
 		:param fileName: the name of the input textfile
-		:return: the Person-Task performance-values table, number of persons, number of tasks (as a tuple in that order)
+		:return: the Person-Task performance-values table, number of persons, number of tasks (as a tuple, in that order)
 	"""
 
 	inputFile = open(fileName)
@@ -282,9 +375,9 @@ def printPTTable(table: list, persons: int = None, tasks: int = None):
 	"""
 		Display (to the terminal) the Person-Task performance-values table
 
-		:param table: 	the 2D list/array of performance values (scores)
-		:param persons: number of Persons
-		:param tasks: 	number of Tasks
+		:param table: 	the 2D list/array of Person-Task performance-values (scores)
+		:param persons: the number of Persons
+		:param tasks: 	the number of Tasks
 		:return: None
 	"""
 
@@ -347,7 +440,10 @@ def main():
 
 	table, persons, tasks = readInputFile(fileName)
 
+	solveTaskAssignment(table, persons, tasks)
+
 	#optimalAssignment, totalScoreOptimal = solveTaskAssignment(table, persons, tasks)
+
 
 	print()
 	print("Persons:\t", persons)
