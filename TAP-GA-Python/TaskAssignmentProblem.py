@@ -27,29 +27,41 @@
 								search.py or utils.py
 
 """
-
-
+import copy
 import random
 import bisect
-
+from datetime import datetime
 
 """
 	Helper Functions (from utils.py)
 """
 
+seedVal = 0
+
 def weighted_sampler(seq, weights):
-	"""Return a random-sample function that picks from seq weighted by weights."""
+	"""
+		Return a random-sample function that picks from seq weighted by (the corresponding) weights.
+	"""
+
 	totals = []
+
+	#random.seed(datetime.now())
+
+	global seedVal
+	random.seed(seedVal)
+	seedVal += 42345876
+
 	for w in weights:
 		totals.append(w + totals[-1] if totals else w)
+
 	return lambda: seq[bisect.bisect(totals, random.uniform(0, totals[-1]))]
 
 
 """
-	Genetic Search Algorithm (taken from search.py)
+	Genetic Search Algorithm (the functions are taken from search.py)
 	
 	All comments are mine
-	I have modified some of the functions so that the Constraints of the Task Assignment Problem is met
+	I have modified all of the functions so that the Constraints of the Task Assignment Problem are met
 """
 
 def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
@@ -67,18 +79,88 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
 
 
 
-# ngen - number of generations of the population
-def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
-	"""[Figure 4.8]"""
-	for i in range(ngen):
-		population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
+# numGenerations - number of generations of the population
+def genetic_algorithm(population, fitnessFunc, genePool, f_thres=None, numGenerations=1000, crossoverRate=0.8, mutationRate=0.1):
+	"""
+
+		:param population:		The initial population of chromosomes
+		:param fitnessFunc:		The fitness function used to evaluate the performance/fitness of a chromosome
+		:param genePool:		The list of all possible values (all possible genes) that can be used to make an individual chromosome
+		:param f_thres:
+		:param numGenerations:	Number of generations of the population to generate before terminating
+		:param crossoverRate:	The probability of doing cross-over (Recombination) [Should be in range 0.8-0.95]
+		:param mutationRate:	The probability of doing Mutation [Should be either 0.1 or 0.001]
+		:return:				the optimal Task Assignment chromosome after the fittest is found or numGenerations of populations have been generated
+								and the final population that the optimal Task Assignment chromosome was taken from
+	"""
+
+
+	for generation in range(numGenerations):
+
+		"""
+			This is a Generational Population Model
+				-	For each population generation, we generate ‘n’ children, where n is the population size, 
+					and the entire population is replaced by the new one at the end of the iteration
+					-	Thus, the population size remains the same throughout all the generations
+		"""
+
+		newPopulation = [] # The new generation of chromosomes
+
+		populationsize = len(population)
+
+		"""
+			We dont always want to do Recombination and Mutation (for every individual to be placed in the new population generation)
+			
+			We want to do Recombination (combining 2 parents to form a child) most of the time; but sometimes we 
+			want to just select an individual from the current generation and place it directly in the
+			new population without mutating it or combining it with another individual
+			(We dont want to add the 2 parents selected as we only want to add 1 child to the new population on each iteration)
+				-	So we get a random value and if it's in the range [0, crossoverRate) then we do Recombination to
+					get a child chromosome to add to the new population, otherwise the 'child' chromosome is just an
+					 individual from the current population
+			
+			We want to do Mutation to the 'child' generated above, but very rarely
+				-	We get a random value and if it's in the range [0, mutation) then we Mutate the child (before 
+					adding it to the new population), otherwise we dont
+		"""
+
+
+		"""
+			Original Code:	
+					population = [mutate(recombine(*select(2, population, fitnessFunc)), genePool, mutationRate)
 					  for i in range(len(population))]
+		"""
 
-		fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
+		for i in range(populationsize): #Generate child i
+
+
+			randNum = random.random() # A random floating value in the range [0.0, 1.0)
+
+			child = [] # Declare the child chromosome; either generated from Recombination or taken directly from current population
+
+			if randNum < crossoverRate: # Do Recombination (Crossover)
+				parents = select(2, population, fitnessFunc) # Select 2 parents
+				child = recombine(parents[0], parents[1])
+			else: # Select a random individual from the current generation and place it directly in the new population
+				individual = select(1, population, fitnessFunc) # Select a random individual from the current generation
+				child = individual[0] # select() returns a list so get the first element from it
+
+			randNum = random.random()  # A random floating value in the range [0.0, 1.0)
+
+			if randNum <= mutationRate: #Do Mutation
+				child = mutate(child, genePool)
+
+			newPopulation.append(child) # Add the child to the new generation
+
+
+		population = newPopulation # New population becomes the current population for the next population generation
+
+		fittest_individual = fitness_threshold(fitnessFunc, f_thres, population)
 		if fittest_individual:
-			return fittest_individual
+			return fittest_individual, population # If the fittest possible (most optimal) chromosome is generated already (before we have done numGenerations generations) then return it
 
-	return max(population, key=fitness_fn)
+
+	return max(population, key=fitnessFunc), population # Return the fittest chromosome in the final population generation, and the final population
 
 
 def fitness_threshold(fitness_fn, f_thres, population):
@@ -96,29 +178,32 @@ def init_population(popSize, genePool, stateLength):
 	"""
 		Initialises the population for the Genetic Algorithm
 
+			This function has been modified to create the Initial Population for the Task Assignment Problem
+
+			Create the initial population - popSize number of chromosomes
+			The chromosomes are randomly generated
+				i.e. each chromosome (Person-Task Assignment) in the initial population is a random assignment of Persons to Tasks
+				We using Random Initialisation as it has been experimentally observed that it (random solutions) drives the population to optimality
+
+			Each chromosome that is randomly generated meets the constraints of the problem
+				- A Person can be assigned to only 1 Task
+					i.e. if they are already assigned to a Task, then they cannot also be assigned to another Task,
+					even if they are the best Person to perform that Task
+
+			(See solveTaskAssignment() documentation for a description of what a chromosome is)
+
+
 		:param popSize: 		The number of individuals in the population
 		:param genePool: 		The list of all possible values (all possible genes) that can be used to make an individual chromosome
 		:param stateLength:		The length/size of each individual chromosome (i.e. the number of Tasks for the Task Assignment Problem)
 		:return: 				The initial population for this Problem to be used by the Genetic Algorithm
 	"""
 
-	g = len(genePool)
+	g = len(genePool) # Used to select a random gene
 
-	population = [] # list of individual chromosomes
+	population = [] # list of individual chromosomes -> size will be popSize after we add all the chromosomes
 
-	"""
-		Create the initial population - popSize number of chromosomes
-		The chromosomes are randomly generated
-			i.e. each chromosome (Person-Task Assignment) in the initial population is a random assignment of Persons to Tasks
-			
-		Each chromosome that is randomly generated meets the constraints of the problem
-			- A Person can be assigned to only 1 Task
-				i.e. if they are already assigned to a Task, then they cannot also be assigned to another Task, 
-				even if they are the best Person to perform that Task
-		
-		(See solveTaskAssignment() documentation for a description of what a chromosome is)
-		
-	"""
+
 	for i in range(popSize): # Create chromosome i
 
 		#new_individual = [genePool[random.randrange(0, g)] for j in range(stateLength)]
@@ -128,18 +213,21 @@ def init_population(popSize, genePool, stateLength):
 		"""
 			A List of boolean values that says whether Person i has already been assigned to a Task or not for this chromosome
 			Intialise to False, as initially no Person is assigned to a Task yet
+			
+			For the Task Assignment Problem, the Gene Pool is the ordered indexes of the Persons.
+			So For index i: genePool[i] == i -> a value in range(g) is the index of a Person 
 		"""
 		isAlreadyAssigned = [False for person in range(g)]
 
 		for j in range(stateLength): #Assign a random person (that has not been previously assigned) to perform Task j
 
-			while True:
-				randomPerson = genePool[random.randrange(0, g)] # get the index of a random Person
+			while True: # Repeat until we get a random Person that has not already been assigned to a Task
+				randomPerson = genePool[random.randrange(0, g)] # get the index of a random Person (get a random gene)
 				if isAlreadyAssigned[randomPerson] == False: # if this random person has not already been assigned to a Task
 					personAssigned = randomPerson # assign this Person to perform Task j
 					newIndividual.append(personAssigned)
 					isAlreadyAssigned[randomPerson] = True
-					break
+					break # Exit the while loop, (and go to the next Task -> start again at the beginning of this for loop block)
 
 		population.append(newIndividual)
 
@@ -147,22 +235,111 @@ def init_population(popSize, genePool, stateLength):
 
 
 def select(r, population, fitness_fn):
-	fitnesses = map(fitness_fn, population)
 	"""
-		map() function returns a map object(which is an iterator) of the results after applying the given function to each item of a given iterable (list, tuple etc.)
-		Params:
-			fun : It is a function to which map passes each element of given iterable.
-			iter : It is a iterable which is to be mapped.
+		Select and return r parents from the population
+
+		Selection Strategy - Roulette Selection (Fitness Proportionate Selection)
+			- 	The parents are selected at random with the chance/probability of a chromosome being selected is proportional to its fitness
+				-	Fitter individuals have a higher chance of being selected (for 'mating' and passing on their genes to child chromosomes)
+				-	This ensures a reasonable spread of both good and bad chromosomes (with good/fit chromosomes being favoured)
+			- 	This Selection Strategy was used as we want a mixture of both good and bad chromosomes
+				-	If we only pick the fittest parents from the current population (Elitism Selection) then we
+					lose chromosomes that are unfit but have part of the solution in them.
+					It also leads to a loss of diversity and premature convergence (which is undesirable for Genetic Algorithms)
+						-	Loss of Diversity is wher	e the population consists of chromosomes of similar genes,
+							which can lead to having a local optimal solution, but not being able to reach the global optimal solution
+
+
+
+		:param r: 			The number of parent chromosomes to select from the population
+		:param population: 	The population of chromosomes
+		:param fitness_fn: 	The fitness function used to evaluate the performance/fitness of a chromosome
+		:return:			r parents (selected at fitness-proportionate random)
 	"""
 
+	"""
+		A map of the chromosomes in the population where each chromosome is mapped with its corresponding fitness value (performance score)
+		
+		The map() function returns a map object (which is an iterator) of the results after applying the given 
+		function to each item of a given iterable (list, tuple etc.)
+	"""
+	#fitnesses = map(fitness_fn, population)
+
+	"""
+		I changed fitnesses to be a list of fitness values where a value at an index is the fitness value of a chromosome
+		at the same index in the population
+			-> fitnesses[i] is the fitness value of the chromosome population[i]
+	"""
+	fitnesses = [fitness_fn(chromosome) for chromosome in population]
+
+	"""
+		weighted_sampler() does the Roulette Selection
+		It returns a function that picks a random sample that picks from population weighted by the fitnesses
+	"""
 	sampler = weighted_sampler(population, fitnesses)
+
+	# return r random samples
 	return [sampler() for i in range(r)]
 
 
 def recombine(x, y):
-	n = len(x)
-	c = random.randrange(0, n)
-	return x[:c] + y[c:]
+	"""
+		Using Davis’ Order Crossover (OX1)  as the Recombination operator
+
+		:param x:
+		:param y:
+		:return:
+	"""
+
+	"""
+			Original Function did One Point Crossover:
+				n = len(x)
+				c = random.randrange(0, n)
+				return x[:c] + y[c:]
+		"""
+
+
+	numTasks = len(x)
+	task1 :int = -1
+	task2 :int = -1
+
+	while task1 >= task2:
+		task1 = random.randrange(0, numTasks)
+		task2 = random.randrange(0, numTasks)
+
+
+
+	child = [-1 for i in range(numTasks)] # initialise child
+
+	for task in range(task1, task2+1):
+		child[task] = x[task]
+
+	# y
+	xUnused = []
+
+	for task in range(numTasks):
+		if x[task] not in child:
+			xUnused.append(x[task])
+
+	y = copy.deepcopy(y)
+
+	n = numTasks - task2 - 1
+
+	#copy
+	yRotated = y[n:] + y[:n]
+
+	#y1
+	xUnusedOrdered = []
+	for task in range(numTasks):
+		if yRotated[task] in xUnused:
+			xUnusedOrdered.append(yRotated[task])
+
+	for i in range(len(xUnusedOrdered)):
+		j = (task2 + i + 1) % numTasks
+		child[j] = xUnusedOrdered[i]
+
+	return  child
+
 
 
 def recombine_uniform(x, y):
@@ -176,35 +353,140 @@ def recombine_uniform(x, y):
 	return ''.join(str(r) for r in result)
 
 
-def mutate(x, gene_pool, pmut):
-	if random.uniform(0, 1) >= pmut:
-		return x
 
-	n = len(x)
-	g = len(gene_pool)
-	c = random.randrange(0, n)
-	r = random.randrange(0, g)
+def mutate(chromosome, gene_pool):
+	# Does Swap Mutation - 2 positions are selected in the chromosome at random, and their values are interchanged
 
-	new_gene = gene_pool[r]
-	return x[:c] + [new_gene] + x[c + 1:]
+	chromosome = copy.deepcopy(chromosome)
+	gene_pool = copy.deepcopy(gene_pool)
+
+
+	numTasks = len(chromosome)
+	numPersons = len(gene_pool)
+
+
+	#c = random.randrange(0, numTasks)
+	#r = random.randrange(0, numPersons)
+	#new_gene = gene_pool[r]
+	#return chromosome[:c] + [new_gene] + chromosome[c + 1:]
+
+	"""
+		The mutated chromosome meets the constraint of the problem
+				- A Person can be assigned to only 1 Task
+					i.e. if they are already assigned to a Task, then they cannot also be assigned to another Task,
+					even if they are the best Person to perform that Task
+
+			(See solveTaskAssignment() documentation for a description of what a chromosome is)
+	"""
+
+	"""
+		If the number of Persons is the same as the number of Tasks, then do Swap Mutation.
+		Since we are swapping 2 genes (Persons) around in the current chromosome (Person-Task assignment),
+			the problem constraint isn't violated
+		
+		
+		However, if the number of Persons is more than the number of Tasks, then either do Swap Mutation or 
+		get a random Task and swap the Person who is assigned to it with a random Person who is not assigned a Task
+			-	The probability for each is 50%
+		
+		(Although we are told that we must assume that the number of Persons is the same as the number of Tasks,
+		I am doing this validation as an extra measure.
+		
+		It wont be the case that there is less Persons than Tasks, as if that was the case I did validation when reading
+		in the text file to remove extra Tasks, so that we have enough persons)
+	"""
+	if numTasks == numPersons:
+
+		task1 = random.randrange(0, numTasks)
+		task2 = random.randrange(0, numTasks)
+
+		temp = chromosome[task1]
+		chromosome[task1] = chromosome[task2]
+		chromosome[task2] = temp
+
+		return chromosome
+
+
+	else:
+
+		randNum = random.random()  # A random floating value in the range [0.0, 1.0)
+
+		if randNum <= 0.5:  # Do Swap Mutation
+			task1 = random.randrange(0, numTasks)
+			task2 = random.randrange(0, numTasks)
+
+			temp = chromosome[task1]
+			chromosome[task1] = chromosome[task2]
+			chromosome[task2] = temp
+
+			return chromosome
+
+
+		else: # Assign Task to an unassigned Person
+			task = random.randrange(0, numTasks) # Random task to swap with a random person who is not assigned to a task
+
+			while True:  # Repeat until we get a random Person that has not already been assigned to a Task
+				randomPerson = gene_pool[random.randrange(0, numPersons)]  # get the index of a random Person (get a random gene)
+				if randomPerson not in chromosome: # if randomPerson is not assigned a Task
+					chromosome[task] = randomPerson
+					return chromosome
 
 
 # ==============================================================================
 # ==============================================================================
 # ==============================================================================
 
+"""
+	The Person-Task performance-values table
+	Made it a global variable so that the fitness function assignmentFitness() can access it
+	It gets assigned/initialised in readInputFile()
+"""
+PTtable = [[]]
 
-# Todo
-def solveTaskAssignment(table: list, persons: int = None, tasks: int = None):
+
+def assignmentFitness(chromosome: list):
+	"""
+		The fitness/evaluation function for this Task Assignment Problem
+
+		The fitness of a chromosome (Person-Task assignment) is the combined/total performance of the Tasks done by the Persons assigned to them
+		The higher the fitness value the better the chromosome is
+
+		This function gets called in solveTaskAssignment()
+
+		Precondition: 	readInputFile() must already have been called in the main() function before solveTaskAssignment()
+						is called, as readInputFile() initialises the PTtable variable
+
+		:param chromosome: 	A Person-Task Assignment for this Task Assignment Problem (A list/permutation of Persons
+							with the indexes being the Tasks that they are assigned to)
+		:return: 			The fitness of this chromosome (the combined/total performance of the Tasks done by the Persons assigned to them)
+	"""
+
+	totalTasksPerformance = 0
+
+	numTasks = len(chromosome)
+
+	for task in range(numTasks):
+		person = chromosome[task] # The Person assigned to this Task
+
+		global PTtable  # PTtable in the statement variable is the global variable we defined above
+		performance = PTtable[person][task]
+
+		totalTasksPerformance += performance
+
+	return totalTasksPerformance
+
+
+def solveTaskAssignment(table: list, persons: int = None, tasks: int = None, populationSize = 100):
 	"""
 		Solve the Task Assignment Problem using Genetic Algorithms
 
 
-		A State in the State Space for this Problem is a list of integer values (where the value at index i in the list
-		is the (index of the) Person (in the Person-Task table) who is assigned to perform Task i)
+		A State in the State Space for this Problem is a permutation list of integer values (where the value at
+		index i in the list is the (index of the) Person (in the Person-Task table) who is assigned to perform Task i)
 			- i.e. it represents an (specific) assignment of people to tasks
+			- It is a permutation as a Person can only occur once in this list (see the Constraints below)
 
-		A chromsome in a Genetic Algorithm represents is State from the State Space, thus a chromosome for
+		A chromosome in a Genetic Algorithm represents a State from the State Space, thus a chromosome for
 			this Task Assignment Problem is as specified above (a list of Person-to-Task assignments)
 		Thus a gene is an integer value that represents the index of a Person in the Person-Task performance-values table
 		The Gene Pool is the list of all possible values (all possible genes) that can be used to make an individual chromosome
@@ -219,7 +501,8 @@ def solveTaskAssignment(table: list, persons: int = None, tasks: int = None):
 		:param table: 	the 2D list/array of Person-Task performance-values (scores)
 		:param persons: the number of Persons
 		:param tasks: 	the number of Tasks
-		:return: 		the optimal Task Assignment chromosome and its associated score/fitness (as a tuple, in that order)
+		:param populationSize	the size of the population for the Genetic Algorithms
+		:return: 		the optimal Task Assignment chromosome and its associated score/fitness (as a tuple, in that order), and also the initial and final population
 	"""
 
 
@@ -240,19 +523,16 @@ def solveTaskAssignment(table: list, persons: int = None, tasks: int = None):
 	"""
 	genePool = [personIndex for personIndex in range(persons)]
 
-	populationSize = 10
 
 
 	initialPopulation = init_population(populationSize, genePool, tasks)
 
-	for chromosome in initialPopulation:
-		print(chromosome)
 
-	optimalAssignment = []
+	optimalAssignment, finalPopulation = genetic_algorithm(initialPopulation, assignmentFitness, genePool, None, 1000) # Get Fittest individual chromosome
 
-	#totalScoreOptimal = fitness_funct(optimalAssignment)
+	totalScoreOptimal = assignmentFitness(optimalAssignment)
 
-	#return optimalAssignment, totalScoreOptimal
+	return optimalAssignment, totalScoreOptimal, initialPopulation, finalPopulation
 
 
 
@@ -268,7 +548,7 @@ def getPersonScores(tasks: int, scoresStr: str):
 		:return: the scores of the Person for the Tasks represented as a list
 	"""
 
-	scores: int = []  # 1D list
+	scores = []  # 1D list
 
 	for i in range(tasks):  # i traverses [0, ..., tasks-1]
 
@@ -330,15 +610,22 @@ def readInputFile(fileName: str):
 	tasks = int(inputFile.readline())  # number of tasks
 
 	"""
+		UPDATE 2: Undid UPDATE
+		UPDATE: if persons > tasks, we are NOT reducing the number of persons to number of tasks -> in a state/solution, some persons wont be assigned a task
 		Specification: assume that the number of persons is the same as the number of tasks
 		Thus if num persons != num tasks, make the number of persons be the number of tasks 
 		(by reducing the one that is bigger to the one that is smaller such that we get a 'square' table; we
 		can't increase the smaller parameter to the bigger one as we don't have any performance values that we can add)
 	"""
+
+
 	if persons > tasks:
 		persons = tasks
 	elif tasks > persons:
 		tasks = persons
+
+	#if tasks > persons:
+	#	tasks = persons
 
 	"""
 		This table variable is a 2D list/array which represents the Person-Task performance-values table
@@ -366,6 +653,8 @@ def readInputFile(fileName: str):
 
 	inputFile.close()
 
+	global  PTtable # PTtable in the statement variable is the global variable we defined above
+	PTtable = table
 
 	return table, persons, tasks
 
@@ -413,6 +702,34 @@ def printPTTable(table: list, persons: int = None, tasks: int = None):
 		print()
 
 
+def printChromosome(chromosome):
+	"""
+
+		:param chromosome:
+		:return: None
+	"""
+
+	"""
+		Persons are labelled/identified using Uppercase letters of the alphabet so personIndex == 0 is  Person A (ASCII-65),
+		personIndex == 1 is Person B (ASCII-66), ... and so on
+
+		So Person of index i has ASCII value of i+65
+	"""
+
+	chromoString = "["
+
+	for person in chromosome:  # for the person assigned to each task
+		chromoString += chr(person+65)
+
+		if person != chromosome[len(chromosome)-1]: # if not at the last element
+			chromoString += ", "
+
+	chromoString += "]"
+
+	fitnessString = "\tFitness = " + str(assignmentFitness(chromosome))
+
+	print(chromoString + fitnessString)
+
 
 def main():
 	"""
@@ -440,11 +757,6 @@ def main():
 
 	table, persons, tasks = readInputFile(fileName)
 
-	solveTaskAssignment(table, persons, tasks)
-
-	#optimalAssignment, totalScoreOptimal = solveTaskAssignment(table, persons, tasks)
-
-
 	print()
 	print("Persons:\t", persons)
 	print("Tasks:\t\t", tasks)
@@ -452,9 +764,37 @@ def main():
 	print("Person-Task Performance Table:\n")
 	printPTTable(table, persons, tasks)
 
+	print("\n\n")
+
+	populationSize = 100
+
+	print("Population Size: ", populationSize)
+	print("Number of generations: 1000")
+	print()
+
+	print("Solving the Task Assignment Problem using a Genetic Algorithm...\n")
+
+	optimalAssignment, totalScoreOptimal, initialPopulation, finalPopulation = solveTaskAssignment(table, persons, tasks, populationSize)
+
+
+
+	print("Intial Population: ")
+	for chromosome in initialPopulation:
+		printChromosome(chromosome)
+
 	print("\n")
-	print("The optimal Task Assignment is: ")
-	print("The total score for this assignment is: ")
+
+	print("Final Population: ")
+	for chromosome in finalPopulation:
+		printChromosome(chromosome)
+
+	print("\n\n")
+
+	print("The optimal Person-Task Assignment is: ")
+	for task in range(len(optimalAssignment)):
+		print("\tTask ", task+1, ":\tPerson ", chr(optimalAssignment[task]+65))
+
+	print("\nThe total performance score for this Person-Task Assignment is: ", totalScoreOptimal)
 
 
 main()
